@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Horaires Scolaires</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --cream: #f5f0e8;
+      --dark: #1a1612;
+      --warm: #c8a97e;
+      --accent-port: #e07a5f;
+      --accent-esp: #f2cc8f;
+      --accent-art: #81b29a;
+      --accent-sport: #6b9ac4;
+      --card-bg: #ffffff;
+      --shadow: 0 4px 30px rgba(26,22,18,0.10);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--dark);
+      min-height: 100vh;
+      padding: 0 0 60px;
+      overflow-x: hidden;
+    }
+
+    /* Noise texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    header {
+      position: relative;
+      background: var(--dark);
+      color: var(--cream);
+      text-align: center;
+      padding: 52px 24px 44px;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--accent-port), var(--accent-esp), var(--accent-art), var(--accent-sport));
+    }
+
+    .header-eyebrow {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--warm);
+      margin-bottom: 14px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.1s;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.25s;
+    }
+
+    header h1 span {
+      color: var(--warm);
+    }
+
+    .subtitle {
+      font-size: 14px;
+      font-weight: 300;
+      color: rgba(245,240,232,0.6);
+      margin-top: 12px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.4s;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 52px 20px 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 36px;
+    }
+
+    @media (max-width: 720px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    .day-block {
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards;
+    }
+    .day-block:nth-child(1) { animation-delay: 0.5s; }
+    .day-block:nth-child(2) { animation-delay: 0.65s; }
+
+    .day-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.9rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .day-label .day-fr { color: var(--dark); }
+
+    .day-divider {
+      height: 2px;
+      background: var(--dark);
+      margin-bottom: 22px;
+      position: relative;
+    }
+    .day-divider::after {
+      content: '';
+      position: absolute;
+      left: 0; top: 0;
+      height: 100%;
+      width: 40px;
+      background: var(--warm);
+    }
+
+    .schedule-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .slot {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: default;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slot::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 5px;
+      border-radius: 14px 0 0 14px;
+    }
+
+    .slot:hover {
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 10px 40px rgba(26,22,18,0.15);
+    }
+
+    .slot.portugais::before  { background: var(--accent-port); }
+    .slot.espagnol::before   { background: var(--accent-esp); }
+    .slot.art::before        { background: var(--accent-art); }
+    .slot.sport::before      { background: var(--accent-sport); }
+
+    .slot-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .slot-icon img, .slot-icon svg {
+      width: 28px;
+      height: 28px;
+      display: block;
+    }
+
+    .slot.portugais .slot-icon  { background: #fdf0ed; }
+    .slot.espagnol .slot-icon   { background: #fdf8ec; }
+    .slot.art .slot-icon        { background: #eef5f1; }
+    .slot.sport .slot-icon      { background: #edf3f9; }
+
+    .slot-info { flex: 1; }
+
+    .slot-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 3px;
+    }
+
+    .slot-time {
+      font-size: 12px;
+      font-weight: 500;
+      color: #999;
+      letter-spacing: 0.04em;
+    }
+
+    .slot-duration {
+      font-size: 11px;
+      font-weight: 500;
+      color: #bbb;
+      background: #f5f5f5;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* Legend */
+    .legend {
+      max-width: 1100px;
+      margin: 48px auto 0;
+      padding: 0 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.9s;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #666;
+    }
+
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 54px;
+      font-size: 11px;
+      color: #bbb;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="header-eyebrow">L'�cole de SOFBS</p>
+  <h1>Horaires <span>Scolaires</span></h1>
+  <p class="subtitle">Mercredi ET Samedi</p>
+</header>
+
+<main>
+
+  <!-- MERCREDI -->
+  <div class="day-block">
+    <div class="day-label">
+      <span class="day-fr">Mercredi</span>
+
+    </div>
+    <div class="day-divider"></div>
+    <div class="schedule-list">
+
+      <div class="slot portugais">
+        <div class="slot-icon"><svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="7" y="3" width="15" height="21" rx="2" fill="#e07a5f"/>
+            <rect x="7" y="3" width="5" height="21" fill="#009C3B" rx="0"/>
+            <rect x="7" y="3" width="2" height="21" fill="#009C3B" rx="0"/>
+            <circle cx="14.5" cy="13.5" r="3.5" fill="none" stroke="white" stroke-width="1.3"/>
+            <line x1="11" y1="13.5" x2="18" y2="13.5" stroke="white" stroke-width="1"/>
+            <line x1="14.5" y1="10" x2="14.5" y2="17" stroke="white" stroke-width="1"/>
+          </svg></div>
+        <div class="slot-info">
+          <div class="slot-name">Portugais</div>
+          <div class="slot-time">08h00 → 09h30</div>
+        </div>
+        <div class="slot-duration">1h30</div>
+      </div>
+
+      <div class="slot espagnol">
+        <div class="slot-icon"><svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="5" width="20" height="18" rx="2" fill="#AA151B"/>
+            <rect x="4" y="10" width="20" height="8" fill="#F1BF00"/>
+            <text x="11" y="16.5" font-size="6" fill="#AA151B" font-family="serif" font-weight="bold">ESP</text>
+          </svg></div>
+        <div class="slot-info">
+          <div class="slot-name">Espagnol</div>
+          <div class="slot-time">09h45 → 11h15</div>
+        </div>
+        <div class="slot-duration">1h30</div>
+      </div>
+
+      <div class="slot art">
+        <div class="slot-icon"><svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="14" cy="14" r="9" fill="#81b29a" opacity="0.3"/>
+            <circle cx="10" cy="11" r="2.5" fill="#e07a5f"/>
+            <circle cx="18" cy="11" r="2.5" fill="#f2cc8f"/>
+            <circle cx="10" cy="18" r="2.5" fill="#6b9ac4"/>
+            <circle cx="18" cy="18" r="2.5" fill="#81b29a"/>
+            <circle cx="14" cy="14" r="2.5" fill="white" stroke="#81b29a" stroke-width="1"/>
+          </svg></div>
+        <div class="slot-info">
+          <div class="slot-name">Art Plastique</div>
+          <div class="slot-time">11h30 → 13h00</div>
+        </div>
+        <div class="slot-duration">1h30</div>
+      </div>
+
+      <div class="slot sport">
+        <div class="slot-icon"><svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="14" cy="14" r="9" fill="none" stroke="#6b9ac4" stroke-width="2"/>
+            <path d="M8 9 Q14 6 20 9" stroke="#6b9ac4" stroke-width="1.5" fill="none"/>
+            <path d="M8 19 Q14 22 20 19" stroke="#6b9ac4" stroke-width="1.5" fill="none"/>
+            <line x1="5" y1="14" x2="23" y2="14" stroke="#6b9ac4" stroke-width="1.5"/>
+            <line x1="14" y1="5" x2="14" y2="23" stroke="#6b9ac4" stroke-width="1.5"/>
+          </svg></div>
+        <div class="slot-info">
+          <div class="slot-name">Sport</div>
+          <div class="slot-time">14h00 → 15h30</div>
+        </div>
+        <div class="slot-duration">1h30</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SAMEDI -->
+  <div class="day-block">
+    <div class="day-label">
+      <span class="day-fr">Samedi</span>
+
+    </div>
+    <div class="day-divider"></div>
+    <div class="schedule-list">
+
+      <div class="slot sport">
+        <div class="slot-icon"><svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="14" cy="14" r="9" fill="none" stroke="#6b9ac4" stroke-width="2"/>
+            <path d="M8 9 Q14 6 20 9" stroke="#6b9ac4" stroke-width="1.5" fill="none"/>
+            <path d="M8 19 Q14 22 20 19" stroke="#6b9ac4" stroke-width="1.5" fill="none"/>
+            <line x1="5" y1="14" x2="23" y2="14" stroke="#6b9ac4" stroke-width="1.5"/>
+            <line x1="14" y1="5" x2="14" y2="23" stroke="#6b9ac4" stroke-width="1.5"/>
+          </svg></div>
+        <div class="slot-info">
+          <div class="slot-name">Sport</div>
+          <div class="slot-time">08h00 → 09h30</div>
+        </div>
+        <div class="slot-duration">1h30</div>
+      </div>
+
+      <div class="slot portugais">
+        <div class="slot-icon"><svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="7" y="3" width="15" height="21" rx="2" fill="#e07a5f"/>
+            <rect x="7" y="3" width="5" height="21" fill="#009C3B" rx="0"/>
+            <rect x="7" y="3" width="2" height="21" fill="#009C3B" rx="0"/>
+            <circle cx="14.5" cy="13.5" r="3.5" fill="none" stroke="white" stroke-width="1.3"/>
+            <line x1="11" y1="13.5" x2="18" y2="13.5" stroke="white" stroke-width="1"/>
+            <line x1="14.5" y1="10" x2="14.5" y2="17" stroke="white" stroke-width="1"/>
+          </svg></div>
+        <div class="slot-info">
+          <div class="slot-name">Portugais</div>
+          <div class="slot-time">09h45 → 11h15</div>
+        </div>
+        <div class="slot-duration">1h30</div>
+      </div>
+
+      <div class="slot espagnol">
+        <div class="slot-icon"><svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="5" width="20" height="18" rx="2" fill="#AA151B"/>
+            <rect x="4" y="10" width="20" height="8" fill="#F1BF00"/>
+            <text x="11" y="16.5" font-size="6" fill="#AA151B" font-family="serif" font-weight="bold">ESP</text>
+          </svg></div>
+        <div class="slot-info">
+          <div class="slot-name">Espagnol</div>
+          <div class="slot-time">11h30 → 13h00</div>
+        </div>
+        <div class="slot-duration">1h30</div>
+      </div>
+
+      <div class="slot art">
+        <div class="slot-icon"><svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="14" cy="14" r="9" fill="#81b29a" opacity="0.3"/>
+            <circle cx="10" cy="11" r="2.5" fill="#e07a5f"/>
+            <circle cx="18" cy="11" r="2.5" fill="#f2cc8f"/>
+            <circle cx="10" cy="18" r="2.5" fill="#6b9ac4"/>
+            <circle cx="18" cy="18" r="2.5" fill="#81b29a"/>
+            <circle cx="14" cy="14" r="2.5" fill="white" stroke="#81b29a" stroke-width="1"/>
+          </svg></div>
+        <div class="slot-info">
+          <div class="slot-name">Art Plastique</div>
+          <div class="slot-time">14h00 → 15h30</div>
+        </div>
+        <div class="slot-duration">1h30</div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent-port)"></div> Portugais</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent-esp)"></div> Espagnol</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent-art)"></div> Art Plastique</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--accent-sport)"></div> Sport</div>
+</div>
+
+<footer style="margin-top:40px">
+  Les Horaires peuvent subir des changements
+</footer>
